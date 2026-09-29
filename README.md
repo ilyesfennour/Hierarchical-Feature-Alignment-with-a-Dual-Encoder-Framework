@@ -135,37 +135,27 @@ For GPU training, install the appropriate PyTorch version for your CUDA configur
 
 The repository does **not** include the datasets.
 
-Please download the datasets from their official sources and place them in the location specified by your configuration.
+**No manual download needed:** MNIST, MedMNIST, CIFAR-10, and SVHN are downloaded automatically by their loaders.
 
-For example:
+**Manual download (from Kaggle):**
+
+* **CelebA** — [`jessicali9530/celeba-dataset`](https://www.kaggle.com/datasets/jessicali9530/celeba-dataset)
+* **DFB-HR** — combine three sources into one `DFB-HR/` folder:
+  * DIV2K: [`soumikrakshit/div2k-high-resolution-images`](https://www.kaggle.com/datasets/soumikrakshit/div2k-high-resolution-images)
+  * Flickr2K: [`daehoyang/flickr2k`](https://www.kaggle.com/datasets/daehoyang/flickr2k)
+  * BSD500: [`balraj98/berkeley-segmentation-dataset-500-bsds500`](https://www.kaggle.com/datasets/balraj98/berkeley-segmentation-dataset-500-bsds500)
+* **ImageNet** — training/validation: merge [`sautkin/imagenet1k0`](https://www.kaggle.com/datasets/sautkin/imagenet1k0), [`sautkin/imagenet1k1`](https://www.kaggle.com/datasets/sautkin/imagenet1k1), [`sautkin/imagenet1k2`](https://www.kaggle.com/datasets/sautkin/imagenet1k2), [`sautkin/imagenet1k3`](https://www.kaggle.com/datasets/sautkin/imagenet1k3) into `train/`. Testing: [`sautkin/imagenet1kvalid`](https://www.kaggle.com/datasets/sautkin/imagenet1kvalid) into `test/` (sibling of `train/`).
+
+Expected layout:
 
 ```text
 data/
-├── MNIST/
-├── CIFAR10/
-├── SVHN/
 ├── CelebA/
-├── ImageNet/
-├── MedMNIST/
-└── DFB-HR/
+├── DFB-HR/
+└── ImageNet/
+    ├── train/
+    └── test/
 ```
-
-The exact directory structure may depend on the dataset loader being used.
-
-> **Note:** Dataset download instructions and preprocessing requirements should be added here for each dataset if they are not automatically handled by the corresponding loader.
-
----
-
-# ▶️ Running an Experiment
-
-The selected experiment determines:
-
-1. The dataset
-2. The degradation procedure
-3. The appropriate data loader
-4. The model configuration
-5. The training procedure
-6. The checkpoint configuration
 
 ---
 
@@ -225,7 +215,7 @@ degradation.py
 
 Available degradation operations include:
 
-### Gaussian noise
+### Denoising
 
 ```text
 Clean image
@@ -233,20 +223,6 @@ Clean image
 Gaussian noise
      ↓
 Degraded image
-     ↓
-Autoencoder
-     ↓
-Reconstructed image
-```
-
-### Motion blur
-
-```text
-Clean image
-     ↓
-Motion blur
-     ↓
-Blurred image
      ↓
 Autoencoder
      ↓
@@ -283,16 +259,6 @@ Recovered image
 
 ---
 
-# 🏋️ Training
-
-Training procedures are implemented in:
-
-```text
-training.py
-```
-
----
-
 # 💾 Checkpoints
 
 Checkpoint management is implemented in:
@@ -302,28 +268,6 @@ checkpoint_utils.py
 ```
 
 The training framework supports continuing training from an existing checkpoint and loading pretrained models.
-
----
-
-# 📊 Evaluation
-
-The framework evaluates the models using task-specific metrics.
-
-### Image restoration
-
-* PSNR
-* SSIM
-
-### Classification
-
-* Accuracy
-
-### Clustering
-
-* Accuracy
-* NMI
-* ARI
-* Davies–Bouldin Index
 
 ---
 
