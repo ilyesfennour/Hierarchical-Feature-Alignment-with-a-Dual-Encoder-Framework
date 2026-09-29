@@ -86,8 +86,8 @@ class TaskDataset(Dataset):
 
         if self.degradation:
             import degradation as degr
-            degraded, target, mask = degr.apply_degradation(img, self.degradation, self.sigma, self.scale_factor)
-            return {'degraded': degraded, 'clean': target, 'mask':mask}
+            degraded, target = degr.apply_degradation(img, self.degradation, self.sigma, self.scale_factor)
+            return {'degraded': degraded, 'clean': target}
         
         else:
             return {'degraded': img, 'clean': img, 'label': self.data_loader[1][idx]}

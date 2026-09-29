@@ -8,20 +8,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 k = 15
 kernel = torch.zeros(k, k, device=device)
 kernel[k//2,:] = 1.0/k
-blur_kernel = kernel.view(1,1,k,k).repeat(3,1,1,1)
 
 # image enhancment
 def add_gaussian_noise(img, sigma=75/255.0):
     """Add Gaussian noise to image"""
     noise = torch.randn_like(img) * sigma
     return torch.clamp(img + noise, 0.0, 1.0)
-
-def add_motion_blur(img):
-    """Add motion blur to image"""
-    x = img.unsqueeze(0).to(device)
-    pad = F.pad(x, (7,7,7,7), mode='reflect')
-    out = F.conv2d(pad, blur_kernel, groups=3)
-    return out.squeeze(0).cpu()
 
 def apply_super_resolution(img, scale_factor=4, noise_sigma=10/255.0):
     """downscale then upscale with poor quality"""
@@ -80,11 +72,10 @@ def apply_missing_data(img, mask_ratio=0.3, mask_type='Central_block'):
     degraded = img * mask
     mask = 1 - mask
     
-    return degraded.clamp(0, 1), mask
+    return degraded.clamp(0, 1)
 
 def apply_degradation(clean_img, task=None, sigma=75/255.0, scale_factor=4):
     """Apply degradation based on task"""
-    mask = clean_img
     if task == 'denoising':
         # Target is clean, degraded is noisy
         target = clean_img
@@ -97,9 +88,9 @@ def apply_degradation(clean_img, task=None, sigma=75/255.0, scale_factor=4):
 
     elif task == 'missing_data':
         target = clean_img
-        degraded, mask = apply_missing_data(clean_img)
+        degraded = apply_missing_data(clean_img)
 
     else:
         raise ValueError(f"Unknown task: '{task}'")
     
-    return degraded, target, mask
+    return degraded, target

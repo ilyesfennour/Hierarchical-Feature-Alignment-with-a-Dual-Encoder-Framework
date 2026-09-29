@@ -101,9 +101,14 @@ def CelebALoader(root_dir='/CelebA', split='train', attribute=None, max_samples_
     return image_paths, image_labels, num_classes
 
 def ImageNetLoader(root_dir='/ImageNet', split='train', max_samples_per_class=None, return_labels=False):
-    """ImageNet data loader with lazy loading(only load file paths)"""
+    """ImageNet data loader"""
 
     split_dir = Path(root_dir)
+
+    if split == 'test':
+        split_dir = split_dir / 'test'
+    else:
+        split_dir = split_dir / 'train'
 
     if not split_dir.exists():
         raise ValueError(f"ImageNet directory not found: {split_dir}")
@@ -120,9 +125,6 @@ def ImageNetLoader(root_dir='/ImageNet', split='train', max_samples_per_class=No
     print(f"Scanning {len(folders)} identities...")
 
     for identity_folder in folders:
-        # identity_folders = sorted([d for d in folder.iterdir() if d.is_dir()])
-
-        # for identity_folder in identity_folders:
         image_files = list(identity_folder.glob("*.jpg"))[:max_samples_per_class]
         max_samples = len(image_files)
 

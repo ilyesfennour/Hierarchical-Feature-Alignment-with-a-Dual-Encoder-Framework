@@ -46,7 +46,7 @@ def run_training(autoencoder='normal', losses_config=None, dataset='MedMNIST', r
     else:
         from get_data_loaders import get_data_loaders as data_loaders
 
-    train_loader, val_loader, _, num_classes, class_weights_dict = data_loaders(
+    train_loader, val_loader, num_classes, class_weights_dict = data_loaders(
         dataset=dataset,
         root_dir=root_dir,
         degradation=degradation,
