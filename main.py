@@ -5,15 +5,15 @@ import multiprocessing
 
 def run_training(autoencoder='normal', losses_config=None, dataset='MedMNIST', root_dir=None,
                  degradation=None, max_samples_per_class=None, epochs=50, batch_size=32, 
-                 learning_rate=2e-3, workers=0, num_layers=4, pretrained_path=None,
-                 checkpoint_dir=None, additional_epochs=0, sigma=75/255.0, scale_factor=4):
+                 learning_rate=2e-3, workers=0, num_layers=4, tap_layers=3, latent_dim=128,
+                 pretrained_path=None, checkpoint_dir=None, additional_epochs=0, sigma=75/255.0, scale_factor=4):
     """Run training with custom parameters"""
 
     multiprocessing.set_start_method('spawn', force=True)
 
     if checkpoint_dir:
         from checkpoint_utils import get_parameters
-        autoencoder, losses_config, dataset, root_dir, degradation, max_samples_per_class, epochs, batch_size, learning_rate, workers, num_layers, pretrained_path = get_parameters(checkpoint_dir)
+        autoencoder, losses_config, dataset, root_dir, degradation, max_samples_per_class, epochs, batch_size, learning_rate, workers, num_layers, tap_layers, latent_dim, pretrained_path = get_parameters(checkpoint_dir)
     
     if degradation:
         return_labels = False
@@ -64,10 +64,10 @@ def run_training(autoencoder='normal', losses_config=None, dataset='MedMNIST', r
         model = DFA(num_layers=num_layers)
     elif autoencoder == 'LAE':
         from model import LAE
-        model = LAE(num_layers=num_layers)
+        model = LAE(num_layers=num_layers, latent_dim=latent_dim)
     elif autoencoder == 'DLAE':
         from model import DLAE
-        model = DLAE(num_layers=num_layers, num_classes=num_classes)
+        model = DLAE(num_layers=num_layers, latent_dim=latent_dim, num_classes=num_classes)
     model.to(device)
     
     if pretrained_path:
@@ -102,6 +102,8 @@ def run_training(autoencoder='normal', losses_config=None, dataset='MedMNIST', r
         'learning_rate': learning_rate,
         'workers': workers,
         'num_layers': num_layers,
+        'tap_layers': tap_layers,
+        'latent_dim': latent_dim,
         'class_weights': class_weights_dict,
         'root_dir': root_dir,
         'pretrained_path': pretrained_path
@@ -113,11 +115,11 @@ def run_training(autoencoder='normal', losses_config=None, dataset='MedMNIST', r
     if return_labels:
         from training import classification_train
         history = classification_train(model, train_loader, val_loader, losses_config, device, exp_dir, num_epochs=epochs,
-                                       learning_rate=learning_rate, checkpoint_dir=checkpoint_dir, additional_epochs=additional_epochs,
-                                       class_weights_dict=class_weights_dict, num_classes=num_classes)
+                                       tap_layers=tap_layers learning_rate=learning_rate, checkpoint_dir=checkpoint_dir,
+                                       additional_epochs=additional_epochs, class_weights_dict=class_weights_dict, num_classes=num_classes)
     else:
         from training import reconstruction_train
-        history = reconstruction_train(model, train_loader, val_loader, losses_config, device, exp_dir, num_epochs=epochs,
+        history = reconstruction_train(model, train_loader, val_loader, losses_config, device, exp_dir, num_epochs=epochs, tap_layers=tap_layers,
                                        learning_rate=learning_rate, checkpoint_dir=checkpoint_dir, additional_epochs=additional_epochs)
 
     print("=" * 70)
