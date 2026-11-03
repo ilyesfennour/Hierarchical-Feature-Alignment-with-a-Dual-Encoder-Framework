@@ -134,26 +134,81 @@ For GPU training, install the appropriate PyTorch version for your CUDA configur
 
 The repository does **not** include the datasets.
 
-**No manual download needed:** MNIST, MedMNIST, CIFAR-10, and SVHN are downloaded automatically by their loaders.
+### Automatic Download
 
-**Manual download (from Kaggle):**
+No manual download is required for the following datasets, which are downloaded automatically by their respective loaders:
 
-* **CelebA** — [`jessicali9530/celeba-dataset`](https://www.kaggle.com/datasets/jessicali9530/celeba-dataset)
-* **DFB-HR** — combine three sources into one `DFB-HR/` folder:
-  * DIV2K: [`soumikrakshit/div2k-high-resolution-images`](https://www.kaggle.com/datasets/soumikrakshit/div2k-high-resolution-images)
-  * Flickr2K: [`daehoyang/flickr2k`](https://www.kaggle.com/datasets/daehoyang/flickr2k)
-  * BSD500: [`balraj98/berkeley-segmentation-dataset-500-bsds500`](https://www.kaggle.com/datasets/balraj98/berkeley-segmentation-dataset-500-bsds500)
-* **ImageNet** — training/validation: merge [`sautkin/imagenet1k0`](https://www.kaggle.com/datasets/sautkin/imagenet1k0), [`sautkin/imagenet1k1`](https://www.kaggle.com/datasets/sautkin/imagenet1k1), [`sautkin/imagenet1k2`](https://www.kaggle.com/datasets/sautkin/imagenet1k2), [`sautkin/imagenet1k3`](https://www.kaggle.com/datasets/sautkin/imagenet1k3) into `train/`. Testing: [`sautkin/imagenet1kvalid`](https://www.kaggle.com/datasets/sautkin/imagenet1kvalid) into `test/` (sibling of `train/`).
+- **MNIST**
+- **MedMNIST**
+- **CIFAR-10**
+- **SVHN**
 
-Expected layout:
+### Manual Download — Training Datasets
+
+Download the following datasets from Kaggle:
+
+- **CelebA:** [Kaggle Dataset](https://www.kaggle.com/datasets/jessicali9530/celeba-dataset)
+- **DFB-HR:** Combine the following three sources into a single `DFB-HR/` folder:
+  - DIV2K: [Kaggle Dataset](https://www.kaggle.com/datasets/soumikrakshit/div2k-high-resolution-images)
+  - Flickr2K: [Kaggle Dataset](https://www.kaggle.com/datasets/daehoyang/flickr2k)
+  - BSD500: [Kaggle Dataset](https://www.kaggle.com/datasets/balraj98/berkeley-segmentation-dataset-500-bsds500)
+- **ImageNet:** Merge the following four sources into `train/`:
+  - [ImageNet Part 0](https://www.kaggle.com/datasets/sautkin/imagenet1k0)
+  - [ImageNet Part 1](https://www.kaggle.com/datasets/sautkin/imagenet1k1)
+  - [ImageNet Part 2](https://www.kaggle.com/datasets/sautkin/imagenet1k2)
+  - [ImageNet Part 3](https://www.kaggle.com/datasets/sautkin/imagenet1k3)
+
+  Download the [ImageNet validation dataset](https://www.kaggle.com/datasets/sautkin/imagenet1kvalid) and place it in `test/`, as a sibling of `train/`.
+
+### Manual Download — Evaluation Benchmarks
+
+The following datasets are used for evaluating image restoration, denoising, and super-resolution performance:
+
+**Image Inpainting / Completion**
+- **CelebA:** [Kaggle Dataset](https://www.kaggle.com/datasets/jessicali9530/celeba-dataset)
+- **SVHN:** [Kaggle Dataset](https://www.kaggle.com/datasets/xiake666/svhm-dataset)
+- **Paris StreetView:** [Kaggle Dataset](https://www.kaggle.com/datasets/arrowjrssgss/parisstreet)
+- **Places2:** [Kaggle Dataset](https://www.kaggle.com/datasets/nguynhoitrung/places2-256-flatten)
+
+**Image Denoising**
+- **CBSD68:** [Kaggle Dataset](https://www.kaggle.com/datasets/tarekmebrouk/cbsd68)
+- **Kodak24:** [Kaggle Dataset](https://www.kaggle.com/datasets/mustafaalkhafaji95/kodak-dataset)
+- **McMaster:** [Kaggle Dataset](https://www.kaggle.com/datasets/liikke/mcmaster)
+- **Set12:** [Kaggle Dataset](https://www.kaggle.com/datasets/abdulfatahnasrat/set12-test)
+- **Urban100:** [Kaggle Dataset](https://www.kaggle.com/datasets/sahilchawla7/urban100)
+- **BSD68:** [Kaggle Dataset](https://www.kaggle.com/datasets/zaminahmad/bsd68-dataset)
+
+**Image Super-Resolution**
+- **Set5:** [Kaggle Dataset](https://www.kaggle.com/datasets/chenqizhou/set5-hr-lr)
+- **Set14:** [Kaggle Dataset](https://www.kaggle.com/datasets/sahilnsut/set14dataset)
+- **BSD100:** [Kaggle Dataset](https://www.kaggle.com/datasets/huaiyingu/bsd100)
+- **Urban100:** [Kaggle Dataset](https://www.kaggle.com/datasets/sahilchawla7/urban100)
+- **DIV2K:** [Kaggle Dataset](https://www.kaggle.com/datasets/soumikrakshit/div2k-high-resolution-images)
+
+### Expected Directory Structure
 
 ```text
 data/
 ├── CelebA/
 ├── DFB-HR/
-└── ImageNet/
-    ├── train/
-    └── test/
+│   ├── DIV2K/
+│   ├── Flickr2K/
+│   └── BSD500/
+├── ImageNet/
+│   ├── train/
+│   └── test/
+└── benchmarks/
+    ├── ParisStreetView/
+    ├── Places2/
+    ├── CBSD68/
+    ├── Kodak24/
+    ├── McMaster/
+    ├── Set12/
+    ├── BSD68/
+    ├── Urban100/
+    ├── Set5/
+    ├── Set14/
+    └── BSD100/
 ```
 
 ---
