@@ -6,7 +6,7 @@ from pathlib import Path
 
 warnings.filterwarnings('ignore')
 
-def CelebALoader(root_dir='/CelebA', split='train', attribute=None, max_samples_per_class=None, return_labels=None):
+def CelebALoader(root_dir='/CelebA', split='train', attribute='Male', max_samples_per_class=None, return_labels=None):
     """ CelebA data loader (only load file paths) """
     
     # Set paths
@@ -423,3 +423,19 @@ def SVHNLoader(split='train', max_samples=None, return_labels=False):
         print(f"Number of classes: {num_classes}")
 
     return images, labels, num_classes
+
+def TestLoader(root_dir='trian', split='val'):
+    """some dataset loader with lazy loading(only load file paths)"""
+
+    split_dir = Path(root_dir)
+    image_paths = []
+
+    if not split_dir.exists():
+        raise ValueError(f"directory not found: {split_dir}")
+
+    image_files = list(split_dir.glob("*.png")) + list(split_dir.glob("*.jpg"))
+    image_paths.extend(image_files)
+
+    print(f"{split} dataset: {len(image_paths)} samples")
+
+    return image_paths, None, None
