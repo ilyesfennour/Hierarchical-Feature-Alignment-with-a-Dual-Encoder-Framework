@@ -468,6 +468,6 @@ class DLAE(nn.Module):
         out, dec_feats = self.decode(x, degraded) # the old model is in the old_training file
         
         if clean is None:
-            return out, logits  # Inference mode
+            return out, z, logits  # Inference mode
         else:
             return out, z, logits, enc_clean_feats, dec_feats  # Training mode
