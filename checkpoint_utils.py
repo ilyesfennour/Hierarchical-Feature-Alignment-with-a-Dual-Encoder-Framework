@@ -25,9 +25,11 @@ def get_parameters(exp_dir):
     learning_rate           = config.get('learning_rate', 2e-3)
     workers                 = config.get('workers', 0)
     num_layers              = config.get('num_layers', 4)
+    tap_layers              = config.get('tap_layers', 3)
+    latent_dim              = config.get('latent_dim', 128)
     pretrained_path         = None
 
-    return autoencoder, losses_config, dataset, root_dir, degradation, max_samples_per_class, epochs, batch_size, learning_rate, workers, num_layers, pretrained_path
+    return autoencoder, losses_config, dataset, root_dir, degradation, max_samples_per_class, epochs, batch_size, learning_rate, workers, num_layers, tap_layers, latent_dim, pretrained_path
 
 def resume_training(exp_dir, model, device, num_epochs, additional_epochs):
     """Resume training exactly from where it stopped"""
