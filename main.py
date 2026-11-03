@@ -1,17 +1,62 @@
 import os
 import json
 import torch
+import argparse
 import multiprocessing
 
-def run_training(autoencoder='normal', losses_config=None, dataset='MedMNIST', root_dir=None,
+def parse_args():
+    parser = argparse.ArgumentParser(description="Autoencoder Training")
+
+    # Model configuration
+    parser.add_argument("--autoencoder", type=str, default="DFA",
+        choices=["DFA", "LAE", "DLAE"]
+    )
+    parser.add_argument("--num_layers", type=int, default=4)
+    parser.add_argument("--tap_layers", type=int, default=3)
+    parser.add_argument("--latent_dim", type=int, default=128)
+
+    # Dataset configuration
+    parser.add_argument("--dataset", type=str, default="MNIST",
+        choices=[
+            "MedMNIST", "ImageNet", "MNIST", "CIFAR10",
+            "CelebA", "SVHN", "DFB-HR"
+        ]
+    )
+    parser.add_argument("--root_dir", type=str, default=None)
+    parser.add_argument("--max_samples_per_class", type=int, default=None)
+
+    # Degradation
+    parser.add_argument("--degradation", type=str, default="denoising",
+        choices=["denoising", "super_resolution", "missing_data", "none"]
+    )
+    parser.add_argument("--sigma", type=float, default=75/255.0)
+    parser.add_argument("--scale_factor", type=int, default=4)
+
+    # Training configuration
+    parser.add_argument("--epochs", type=int, default=50)
+    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--learning_rate", type=float, default=2e-4)
+    parser.add_argument("--workers", type=int, default=0)
+
+    # Checkpoints
+    parser.add_argument("--pretrained_path", type=str, default=None)
+    parser.add_argument("--checkpoint_dir", type=str, default=None)
+    parser.add_argument("--additional_epochs", type=int, default=0)
+
+    # Loss configuration (JSON file)
+    parser.add_argument("--losses_config", type=str, default=None)
+
+    return parser.parse_args()
+
+def run_training(autoencoder='DFA', losses_config=None, dataset='MNIST', root_dir=None,
                  degradation=None, max_samples_per_class=None, epochs=50, batch_size=32, 
-                 learning_rate=2e-3, workers=0, num_layers=4, tap_layers=3, latent_dim=128,
+                 learning_rate=2e-4, workers=0, num_layers=4, tap_layers=3, latent_dim=128,
                  pretrained_path=None, checkpoint_dir=None, additional_epochs=0, sigma=75/255.0, scale_factor=4):
     """Run training with custom parameters"""
 
     if TAP_LAYERS > NUM_LAYERS - 1:
     raise ValueError(
-        f"TAP_LAYERS ({TAP_LAYERS}) must be <= NUM_LAYERS - 1 ({NUM_LAYERS - 1})."
+        f"TAP_LAYERS ({tap_layers}) must be <= NUM_LAYERS - 1 ({num_layers - 1})."
     )
 
     multiprocessing.set_start_method('spawn', force=True)
@@ -73,6 +118,8 @@ def run_training(autoencoder='normal', losses_config=None, dataset='MedMNIST', r
     elif autoencoder == 'DLAE':
         from model import DLAE
         model = DLAE(num_layers=num_layers, latent_dim=latent_dim, num_classes=num_classes)
+    else:
+        raise ValueError(f"Unknown autoencoder: {autoencoder}")
     model.to(device)
     
     if pretrained_path:
@@ -120,7 +167,7 @@ def run_training(autoencoder='normal', losses_config=None, dataset='MedMNIST', r
     if return_labels:
         from training import classification_train
         history = classification_train(model, train_loader, val_loader, losses_config, device, exp_dir, num_epochs=epochs,
-                                       tap_layers=tap_layers learning_rate=learning_rate, checkpoint_dir=checkpoint_dir,
+                                       tap_layers=tap_layers, learning_rate=learning_rate, checkpoint_dir=checkpoint_dir,
                                        additional_epochs=additional_epochs, class_weights_dict=class_weights_dict, num_classes=num_classes)
     else:
         from training import reconstruction_train
@@ -133,3 +180,41 @@ def run_training(autoencoder='normal', losses_config=None, dataset='MedMNIST', r
     print("=" * 70)
     
     return history, exp_dir
+
+def main(args):
+    # Load loss configuration
+    if args.losses_config:
+        with open(args.losses_config, "r") as f:
+            losses_config = json.load(f)
+    else:
+        losses_config = {
+            "l1": {"lambda": 1.0},
+            "l2": {"lambda": 0.5},
+            "perceptual": {"lambda": 0.1},
+            "tap": {"lambda": 0.05}
+        }
+
+    return run_training(
+        autoencoder=args.autoencoder,
+        losses_config=losses_config,
+        dataset=args.dataset,
+        root_dir=args.root_dir,
+        degradation=None if args.degradation == "none" else args.degradation,
+        max_samples_per_class=args.max_samples_per_class,
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        learning_rate=args.learning_rate,
+        workers=args.workers,
+        num_layers=args.num_layers,
+        tap_layers=args.tap_layers,
+        latent_dim=args.latent_dim,
+        pretrained_path=args.pretrained_path,
+        checkpoint_dir=args.checkpoint_dir,
+        additional_epochs=args.additional_epochs,
+        sigma=args.sigma,
+        scale_factor=args.scale_factor
+    )
+
+if __name__ == "__main__":
+    args = parse_args()
+    history, exp_dir = main(args)
