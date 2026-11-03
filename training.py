@@ -169,6 +169,10 @@ def reconstruction_train(model, train_loader, val_loader, losses_config, device,
         # Save checkpoint
         checkpoint = {
             'epoch': ep,
+            'name': model.__class__.__name__,
+            'num_layers': model.num_layers,
+            'latent_dim': getattr(model, "latent_dim", None),
+            'num_classes': getattr(model, "num_classes", None),
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': opt.state_dict(),
             'scheduler_state_dict': scheduler.state_dict(),
@@ -411,6 +415,10 @@ def classification_train(model, train_loader, val_loader, losses_config, device,
 
         checkpoint = {
             'epoch': ep,
+            'name': model.__class__.__name__,
+            'num_layers': model.num_layers,
+            'latent_dim': getattr(model, "latent_dim", None),
+            'num_classes': getattr(model, "num_classes", None),
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': opt.state_dict(),
             'scheduler_state_dict': scheduler.state_dict(),
