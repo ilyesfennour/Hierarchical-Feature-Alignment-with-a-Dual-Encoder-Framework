@@ -7,7 +7,7 @@ from tqdm import tqdm
 from training_utilities import calculate_psnr, compute_total_loss
 
 def reconstruction_train(model, train_loader, val_loader, losses_config, device, exp_dir, num_epochs=100,
-                         learning_rate=2e-3, checkpoint_dir=None, additional_epochs=0):
+                         tap_layers=3, learning_rate=2e-3, checkpoint_dir=None, additional_epochs=0):
     """Train the model"""
 
     if checkpoint_dir:
@@ -68,7 +68,8 @@ def reconstruction_train(model, train_loader, val_loader, losses_config, device,
                         target=clean,
                         z=z_deg,
                         enc_clean_feats=enc_clean_feats,
-                        dec_feats=dec_feats
+                        dec_feats=dec_feats,
+                        tap_layers=tap_layers
                     )
             else:
                 # CPU training
@@ -82,7 +83,8 @@ def reconstruction_train(model, train_loader, val_loader, losses_config, device,
                     target=clean,
                     z=z_deg,
                     enc_clean_feats=enc_clean_feats,
-                    dec_feats=dec_feats
+                    dec_feats=dec_feats,
+                    tap_layers=tap_layers
                 )
             
             # Backpropagation
@@ -133,7 +135,8 @@ def reconstruction_train(model, train_loader, val_loader, losses_config, device,
                     target=clean,
                     z=z_deg,
                     enc_clean_feats=enc_clean_feats,
-                    dec_feats=dec_feats
+                    dec_feats=dec_feats,
+                    tap_layers=tap_layers
                 )
                 
                 v_loss += batch_loss.item()
@@ -192,7 +195,7 @@ def reconstruction_train(model, train_loader, val_loader, losses_config, device,
     return history
 
 def classification_train(model, train_loader, val_loader, losses_config, device, exp_dir, num_epochs=100,
-                         learning_rate=2e-3, checkpoint_dir=None, additional_epochs=0,
+                         tap_layers=3, learning_rate=2e-3, checkpoint_dir=None, additional_epochs=0,
                          class_weights_dict=None, num_classes=None):
 
     if checkpoint_dir:
@@ -267,7 +270,8 @@ def classification_train(model, train_loader, val_loader, losses_config, device,
                         z=z,
                         labels=labels,
                         enc_clean_feats=enc_clean_feats,
-                        dec_feats=dec_feats
+                        dec_feats=dec_feats,
+                        tap_layers=tap_layers
                     )
                     loss += losses_config['ce']['lambda'] * ce_loss(logits, labels)
                     if 'center' in losses_config:
@@ -282,7 +286,8 @@ def classification_train(model, train_loader, val_loader, losses_config, device,
                     z=z,
                     labels=labels,
                     enc_clean_feats=enc_clean_feats,
-                    dec_feats=dec_feats
+                    dec_feats=dec_feats,
+                    tap_layers=tap_layers
                 )
                 loss += losses_config['ce']['lambda'] * ce_loss(logits, labels)
                 if 'center' in losses_config:
@@ -357,7 +362,8 @@ def classification_train(model, train_loader, val_loader, losses_config, device,
                     z=z,
                     labels=labels,
                     enc_clean_feats=enc_clean_feats,
-                    dec_feats=dec_feats
+                    dec_feats=dec_feats,
+                    tap_layers=tap_layers
                 )
                 loss += losses_config['ce']['lambda'] * ce_loss(logits, labels)
                 if 'center' in losses_config:
