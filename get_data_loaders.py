@@ -96,7 +96,7 @@ def get_data_loaders(batch_size=32, workers=0, degradation=None, **kwargs):
     """Create data loaders for TissueMNIST dataset"""
     class_weights_dict = None
     
-    # Load TissueMNIST dataset
+    # Load dataset
     train_dataset = TaskDataset(split='train', degradation=degradation, **kwargs)
     val_dataset = TaskDataset(split='val', degradation=degradation, **kwargs)
     test_dataset = TaskDataset(split='test', degradation=degradation, **kwargs)
