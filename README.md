@@ -35,7 +35,6 @@ The models can be trained with different datasets and image degradation types.
 | Degradation      | Description                                       |
 | ---------------- | ------------------------------------------------- |
 | Gaussian noise   | Additive Gaussian noise                           |
-| Motion blur      | Synthetic motion blur                             |
 | Super-resolution | Downsampling followed by reconstruction           |
 | Missing data     | Removal of image information followed by recovery |
 
@@ -89,7 +88,7 @@ The DFB-HR dataset is additionally supported through a patch-based data-loading 
 | `get_patched_data_loaders.py` | Patch-based data loading for DFB-HR                       |
 | `training.py`                 | Reconstruction and classification training procedures     |
 | `training_utilities.py`       | Loss functions and training utilities                     |
-| `checkpoint_utils.py`         | Checkpoint loading, saving, and training continuation     |
+| `checkpoint_utils.py`         | Checkpoint loading, and training continuation             |
 | `notebooks/training.ipynb`    | Lightweight notebook interface for running experiments    |
 
 ---
@@ -155,106 +154,6 @@ data/
 └── ImageNet/
     ├── train/
     └── test/
-```
-
----
-
-# 🧠 Models
-
-## DFA
-
-The DFA model serves as a baseline autoencoder architecture for learning image representations and reconstructing degraded inputs.
-
----
-
-## LAE
-
-The LAE model extends the baseline architecture with a latent representation designed to provide a compact representation of the input.
-
----
-
-## DLAE
-
-DLAE extends the latent autoencoder with additional components for semantic representation learning and classification.
-
-The latent representation can therefore be used for multiple objectives, including:
-
-* Reconstruction
-* Classification
-* Feature alignment
-* Semantic representation learning
-
----
-
-# 📉 Loss Functions
-
-The training framework supports several loss components.
-
-The total training objective is constructed from weighted loss terms, including:
-
-* L1 loss
-* L2 loss
-* Perceptual loss
-* TAP loss
-* Latent-space losses
-* SSIM-based loss
-* Edge loss
-* Classification loss
-* Center loss
-* Batch-hard triplet loss
-
----
-
-# 🖼️ Image Degradation
-
-The degradation pipeline is implemented in:
-
-```text
-degradation.py
-```
-
-Available degradation operations include:
-
-### Denoising
-
-```text
-Clean image
-     ↓
-Gaussian noise
-     ↓
-Degraded image
-     ↓
-Autoencoder
-     ↓
-Reconstructed image
-```
-
-### Super-resolution
-
-```text
-High-resolution image
-        ↓
-     Downsample
-        ↓
-Low-resolution image
-        ↓
-    Autoencoder
-        ↓
-High-resolution reconstruction
-```
-
-### Missing data
-
-```text
-Original image
-      ↓
-Missing-data mask
-      ↓
-Degraded image
-      ↓
-Autoencoder
-      ↓
-Recovered image
 ```
 
 ---
