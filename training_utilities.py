@@ -21,10 +21,10 @@ def perceptual_loss(model, prediction, target):
     
     return l2_loss(out_vgg, clean_vgg)
 
-def tap_loss(model, enc_clean_feats, dec_feats):
+def tap_loss(model, enc_clean_feats, dec_feats, tap_layers):
     """ TAP loss """
     tap_loss = 0
-    for i in range(min(3, model.num_layers-1)):
+    for i in range(tap_layers):
         enc_feat = model.enc_proj_layers[i](enc_clean_feats[i])
         dec_feat = model.dec_proj_layers[i](dec_feats[-(i+1)])
         if enc_feat.shape != dec_feat.shape:
@@ -113,7 +113,7 @@ def batch_hard_triplet_loss(embeddings, labels, margin=1.0):
 
     return loss.mean()
 
-def compute_total_loss(model, losses_config, prediction, target, enc_clean_feats, dec_feats, z=None, labels=None):
+def compute_total_loss(model, losses_config, prediction, target, enc_clean_feats, dec_feats, tap_layers, z=None, labels=None):
     """ Compute total loss """
 
     total_loss = 0
@@ -128,7 +128,7 @@ def compute_total_loss(model, losses_config, prediction, target, enc_clean_feats
         total_loss += losses_config['perceptual']['lambda'] * perceptual_loss(model, prediction, target)
 
     if 'tap' in losses_config:
-        total_loss += losses_config['tap']['lambda'] * tap_loss(model, enc_clean_feats, dec_feats)
+        total_loss += losses_config['tap']['lambda'] * tap_loss(model, enc_clean_feats, dec_feats, tap_layers)
 
     if 'latent' in losses_config:
         total_loss += losses_config['latent']['lambda'] * latent_distance_loss(z, target)
