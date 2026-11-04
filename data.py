@@ -424,7 +424,7 @@ def SVHNLoader(split='train', max_samples=None, return_labels=False):
 
     return images, labels, num_classes
 
-def TestLoader(root_dir='trian', split='val'):
+def TestLoader(root_dir='trian'):
     """some dataset loader with lazy loading(only load file paths)"""
 
     split_dir = Path(root_dir)
@@ -436,6 +436,6 @@ def TestLoader(root_dir='trian', split='val'):
     image_files = list(split_dir.glob("*.png")) + list(split_dir.glob("*.jpg"))
     image_paths.extend(image_files)
 
-    print(f"{split} dataset: {len(image_paths)} samples")
+    print(f"{'Number of test images':<25}: {len(image_paths)}")
 
     return image_paths, None, None
