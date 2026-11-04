@@ -1,5 +1,6 @@
 # Model Evaluation
 import os
+import json
 import torch
 import argparse
 import numpy as np
@@ -20,18 +21,18 @@ from model import DFA, LAE, DLAE
 from get_data_loaders import TaskDataset
 
 DATASET_PATHS = {
-    "CBSD68": "test/dataset/train",
-    "Kodak": "test/Kodak24/Kodak24",
-    "McMaster": "test/McMaster",
-    "Set12": "test/Set12",
-    "Urban100": "test/Urban100/original",
-    "BSD68": "test/BSD68",
-    "Set5": "test/Set5/HR",
-    "Set14": "test/Set14/original",
-    "BSD100": "test/BSD100",
-    "DIV2K": "test/DIV2K_valid_HR/DIV2K_valid_HR",
-    "ParisStreetView": "test/paris_train_original",
-    "Places2": "test/Places2/test_256",
+    "CBSD68": "dataset/train",
+    "Kodak": "Kodak24/Kodak24",
+    "McMaster": "McMaster",
+    "Set12": "Set12",
+    "Urban100": "Urban100/original",
+    "BSD68": "BSD68",
+    "Set5": "Set5/HR",
+    "Set14": "Set14/original",
+    "BSD100": "BSD100",
+    "DIV2K": "DIV2K_valid_HR/DIV2K_valid_HR",
+    "ParisStreetView": "paris_train_original",
+    "Places2": "Places2/test_256",
 }
 
 def parse_args():
@@ -49,6 +50,7 @@ def parse_args():
     # Dataset parameters
     parser.add_argument("--dataset", type=str, default=None,
         choices=[
+            "MNIST", "ImageNet", "CIFAR10", "MedMNIST",
             "CelebA", "SVHN", "CBSD68", "Kodak", "McMaster",
             "Set12", "Urban100", "BSD68", "Set5", "Set14",
             "BSD100", "DIV2K", "ParisStreetView", "Places2"
@@ -66,6 +68,8 @@ def parse_args():
     # DataLoader parameters
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--workers", type=int, default=None)
+
+    args = parser.parse_args()
 
     # Default parameters
     config = {
@@ -103,7 +107,8 @@ def evaluate_model(model, test_loader, device):
 
     model.eval()
 
-    print("\nEvaluating model...")
+    print("-" * 65)
+    print("Evaluating model...")
 
     with torch.no_grad():
         for batch in tqdm(test_loader):
@@ -141,10 +146,16 @@ def evaluate_model(model, test_loader, device):
         "ssim_std": float(np.std(ssim_values))
     }
 
-    print("\nEvaluation Results")
-    print(f"Number of images : {stats['num_images']}")
-    print(f"PSNR             : {stats['psnr_mean']:.4f} ± {stats['psnr_std']:.4f}")
-    print(f"SSIM             : {stats['ssim_mean']:.4f} ± {stats['ssim_std']:.4f}")
+    print("\n" + "=" * 65)
+    print("EVALUATION RESULTS")
+    print("=" * 65)
+
+    print(f"{'Number of images':<25}: {stats['num_images']}")
+    print("-" * 65)
+    print(f"{'PSNR (dB)':<25}: {stats['psnr_mean']:.4f} ± {stats['psnr_std']:.4f}")
+    print(f"{'SSIM':<25}: {stats['ssim_mean']:.4f} ± {stats['ssim_std']:.4f}")
+
+    print("=" * 65)
 
     return stats
 
@@ -155,8 +166,11 @@ def evaluate_classification(model, test_loader, device):
 
     model.eval()
 
+    print("-" * 65)
+    print("Evaluating model...")
+
     with torch.no_grad():
-        for batch in tqdm(test_loader, desc="Evaluating classification"):
+        for batch in tqdm(test_loader):
 
             images = batch["degraded"].to(device)
             labels = batch["label"].to(device).long()
@@ -175,8 +189,15 @@ def evaluate_classification(model, test_loader, device):
 
     accuracy = 100.0 * correct / total
 
-    print(f"\nClassification Accuracy: {accuracy:.2f}%")
-    print(f"Correct predictions: {correct}/{total}")
+    print("\n" + "=" * 65)
+    print("EVALUATION RESULTS")
+    print("=" * 65)
+
+    print(f"{'Number of images':<25}: {total}")
+    print("-" * 65)
+
+    print(f"{'Classification Accuracy':<25}: {accuracy:.2f}%")
+    print(f"{'Correct predictions':<25}: {correct}/{total}")
 
     return accuracy
 
@@ -207,6 +228,9 @@ def clustering_accuracy(y_true, y_pred):
 def evaluate_clustering(model, test_loader, device, n_clusters=None):
     """Evaluate latent-space clustering using K-Means and four metrics."""
 
+    print("-" * 65)
+    print("Evaluating model...")
+
     # 1. Extract latent representations
     latents, y_true = extract_latents(model, test_loader, device)
 
@@ -234,10 +258,15 @@ def evaluate_clustering(model, test_loader, device, n_clusters=None):
         "ARI": ari
     }
 
-    print("\nClustering Evaluation")
-    print("-" * 30)
+    print("\n" + "=" * 65)
+    print("EVALUATION RESULTS")
+    print("=" * 65)
+
+    print(f"{'Number of images':<25}: {len(test_loader.dataset)}")
+    print("-" * 65)
+
     for metric, value in results.items():
-        print(f"{metric}: {value:.4f}")
+        print(f"{metric:<25}: {value:.4f}")
 
     return results
 
@@ -272,30 +301,31 @@ def load_model(checkpoint_path, device):
     model.to(device)
     model.eval()
 
-    print(f"Model: {model_name}")
-    print(f"Epoch: {checkpoint['epoch']}")
-    print(f"Number of layers: {checkpoint['num_layers']}")
+    print(f"{'Model':<25}: {model_name}")
+    print(f"{'Epoch':<25}: {checkpoint['epoch']}")
+    print(f"{'Number of layers':<25}: {checkpoint['num_layers']}")
 
     if checkpoint["latent_dim"] is not None:
-        print(f"Latent dimension: {checkpoint['latent_dim']}")
+        print(f"{'Latent dimension':<25}: {checkpoint['latent_dim']}")
 
     if checkpoint["num_classes"] is not None:
-        print(f"Number of classes: {checkpoint['num_classes']}")
+        print(f"{'Number of classes':<25}: {checkpoint['num_classes']}")
 
     return model
 
 # Create Evaluation DataLoader
 def get_dataset_config(dataset, root_dir):
-    if dataset in ["CelebA", "SVHN"]:
+    if dataset in ["CelebA", "CIFAR10", "ImageNet", "MedMNIST", "MNIST", "SVHN"]:
         return dataset, root_dir
 
     if dataset in DATASET_PATHS:
+        if root_dir is None:
+            raise ValueError("The root directory must be specified. Please provide a valid root_dir.")
+
         dataset_path = os.path.join(root_dir, DATASET_PATHS[dataset])
 
         if not os.path.isdir(dataset_path):
-            raise FileNotFoundError(
-                f"Dataset directory not found: {dataset_path}"
-            )
+            raise FileNotFoundError(f"Dataset directory not found: {dataset_path}")
 
         return "Test", dataset_path
 
@@ -322,6 +352,13 @@ def create_test_loader(args):
     )
 
 def main(args):
+    print("\n" + "=" * 65)
+    print("EVALUATION CONFIGURATION")
+    print("=" * 65)
+
+    print(f"{'Dataset':<25}: {args.dataset}")
+    print(f"{'Evaluation mode':<25}: {args.mode.capitalize()}")
+    print(f"{'Degradation':<25}: {args.degradation or 'None'}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -330,10 +367,6 @@ def main(args):
 
     # Create test loader
     test_loader = create_test_loader(args)
-
-    print(f"\nDataset: {args.dataset}")
-    print(f"Evaluation mode: {args.mode}")
-    print(f"Device: {device}")
 
     if args.mode == "restoration":
         if args.degradation is None or args.degradation == "none":
