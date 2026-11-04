@@ -5,18 +5,22 @@ import argparse
 import multiprocessing
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Autoencoder Training")
+    parser = argparse.ArgumentParser(description="Train autoencoder models.")
 
-    # Model configuration
-    parser.add_argument("--autoencoder", type=str, default="DFA",
+    # Configuration files
+    parser.add_argument("--config", type=str, default=None, help="Path to the main JSON configuration file.")
+    parser.add_argument("--losses_config", type=str, default=None, help="Path to the JSON losses configuration file.")
+
+    # Model parameters
+    parser.add_argument("--autoencoder", type=str, default=None,
         choices=["DFA", "LAE", "DLAE"]
     )
-    parser.add_argument("--num_layers", type=int, default=4)
-    parser.add_argument("--tap_layers", type=int, default=3)
-    parser.add_argument("--latent_dim", type=int, default=128)
+    parser.add_argument("--num_layers", type=int, default=None)
+    parser.add_argument("--tap_layers", type=int, default=None)
+    parser.add_argument("--latent_dim", type=int, default=None)
 
-    # Dataset configuration
-    parser.add_argument("--dataset", type=str, default="MNIST",
+    # Dataset parameters
+    parser.add_argument("--dataset", type=str, default=None,
         choices=[
             "MedMNIST", "ImageNet", "MNIST", "CIFAR10",
             "CelebA", "SVHN", "DFB-HR"
@@ -24,29 +28,73 @@ def parse_args():
     )
     parser.add_argument("--root_dir", type=str, default=None)
     parser.add_argument("--max_samples_per_class", type=int, default=None)
-
-    # Degradation
-    parser.add_argument("--degradation", type=str, default="denoising",
+    parser.add_argument("--degradation", type=str, default=None,
         choices=["denoising", "super_resolution", "missing_data", "none"]
     )
-    parser.add_argument("--sigma", type=float, default=75/255.0)
-    parser.add_argument("--scale_factor", type=int, default=4)
 
-    # Training configuration
-    parser.add_argument("--epochs", type=int, default=50)
-    parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--learning_rate", type=float, default=2e-4)
-    parser.add_argument("--workers", type=int, default=0)
+    # Training parameters
+    parser.add_argument("--epochs", type=int, default=None)
+    parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument("--learning_rate", type=float, default=None)
+    parser.add_argument("--workers", type=int, default=None)
 
-    # Checkpoints
+    # Other parameters
+    parser.add_argument("--sigma", type=float, default=None)
+    parser.add_argument("--scale_factor", type=int, default=None)
     parser.add_argument("--pretrained_path", type=str, default=None)
     parser.add_argument("--checkpoint_dir", type=str, default=None)
-    parser.add_argument("--additional_epochs", type=int, default=0)
+    parser.add_argument("--additional_epochs", type=int, default=None)
 
-    # Loss configuration (JSON file)
-    parser.add_argument("--losses_config", type=str, default=None)
+    args = parser.parse_args()
 
-    return parser.parse_args()
+    # Default parameters
+    config = {
+        "autoencoder": "DFA",
+        "dataset": "MNIST",
+        "root_dir": None,
+        "degradation": 'denoising',
+        "max_samples_per_class": None,
+        "epochs": 50,
+        "batch_size": 32,
+        "learning_rate": 2e-4,
+        "workers": 0,
+        "num_layers": 4,
+        "tap_layers": 3,
+        "latent_dim": 128,
+        "sigma": 75 / 255.0,
+        "scale_factor": 4,
+        "pretrained_path": None,
+        "checkpoint_dir": None,
+        "additional_epochs": 0,
+        "losses_config": {
+            "l1": {"lambda": 1.0},
+            "l2": {"lambda": 0.5},
+            "perceptual": {"lambda": 0.1},
+            "tap": {"lambda": 0.05}
+        }
+    }
+
+    # Load main configuration file
+    if args.config is not None:
+        with open(args.config, "r") as f:
+            file_config = json.load(f)
+        config.update(file_config)
+
+    # Override with explicitly provided command-line arguments
+    cli_args = vars(args).copy()
+    cli_args.pop("config")
+    cli_args.pop("losses_config")
+
+    for key, value in cli_args.items():
+        if value is not None:
+            config[key] = value
+
+    # Load separate losses configuration if provided
+    if args.losses_config is not None:
+        with open(args.losses_config, "r") as f:
+            config["losses_config"] = json.load(f)
+
+    return argparse.Namespace(**config)
 
 def run_training(autoencoder='DFA', losses_config=None, dataset='MNIST', root_dir=None,
                  degradation=None, max_samples_per_class=None, epochs=50, batch_size=32, 
@@ -181,40 +229,11 @@ def run_training(autoencoder='DFA', losses_config=None, dataset='MNIST', root_di
     
     return history, exp_dir
 
-def main(args):
-    # Load loss configuration
-    if args.losses_config:
-        with open(args.losses_config, "r") as f:
-            losses_config = json.load(f)
-    else:
-        losses_config = {
-            "l1": {"lambda": 1.0},
-            "l2": {"lambda": 0.5},
-            "perceptual": {"lambda": 0.1},
-            "tap": {"lambda": 0.05}
-        }
+def main():
+    args = parse_args()
+    history, exp_dir = run_training(**vars(args))
 
-    return run_training(
-        autoencoder=args.autoencoder,
-        losses_config=losses_config,
-        dataset=args.dataset,
-        root_dir=args.root_dir,
-        degradation=None if args.degradation == "none" else args.degradation,
-        max_samples_per_class=args.max_samples_per_class,
-        epochs=args.epochs,
-        batch_size=args.batch_size,
-        learning_rate=args.learning_rate,
-        workers=args.workers,
-        num_layers=args.num_layers,
-        tap_layers=args.tap_layers,
-        latent_dim=args.latent_dim,
-        pretrained_path=args.pretrained_path,
-        checkpoint_dir=args.checkpoint_dir,
-        additional_epochs=args.additional_epochs,
-        sigma=args.sigma,
-        scale_factor=args.scale_factor
-    )
+    return history, exp_dir
 
 if __name__ == "__main__":
-    args = parse_args()
-    history, exp_dir = main(args)
+    history, exp_dir = main()
