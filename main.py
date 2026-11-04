@@ -102,10 +102,10 @@ def run_training(autoencoder='DFA', losses_config=None, dataset='MNIST', root_di
                  pretrained_path=None, checkpoint_dir=None, additional_epochs=0, sigma=75/255.0, scale_factor=4):
     """Run training with custom parameters"""
 
-    if TAP_LAYERS > NUM_LAYERS - 1:
-    raise ValueError(
-        f"TAP_LAYERS ({tap_layers}) must be <= NUM_LAYERS - 1 ({num_layers - 1})."
-    )
+    if tap_layers > num_layers - 1:
+        raise ValueError(
+            f"TAP_LAYERS ({tap_layers}) must be <= NUM_LAYERS - 1 ({num_layers - 1})."
+        )
 
     multiprocessing.set_start_method('spawn', force=True)
 
