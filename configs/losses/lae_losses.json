@@ -1,0 +1,9 @@
+{
+    "l1": {"lambda": 0.5},
+    "l2": {"lambda": 2.0},
+    "perceptual": {"lambda": 0.1},
+    "tap": {"lambda": 0.05},
+    "latent": {"lambda": 0.1},
+    "ssim": {"lambda": 0.5},
+    "edge": {"lambda": 0.1}
+}

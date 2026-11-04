@@ -1,0 +1,11 @@
+{
+    "checkpoint": null,
+    "mode": "restoration",
+    "dataset": "Set5",
+    "root_dir": null,
+    "degradation": "super_resolution",
+    "sigma": 0.2941,
+    "scale_factor": 4,
+    "batch_size": 64,
+    "workers": 4
+}

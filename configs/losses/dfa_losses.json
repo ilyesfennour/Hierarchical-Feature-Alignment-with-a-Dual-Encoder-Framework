@@ -1,0 +1,6 @@
+{
+    "l1": {"lambda": 0.5},
+    "l2": {"lambda": 1.0},
+    "perceptual": {"lambda": 0.1},
+    "tap": {"lambda": 0.05}
+}

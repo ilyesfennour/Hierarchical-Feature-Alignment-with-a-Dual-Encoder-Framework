@@ -1,0 +1,25 @@
+{
+    "autoencoder": "DFA",
+    "dataset": "CelebA",
+    "root_dir": null,
+    "degradation": "super_resolution",
+    "max_samples_per_class": null,
+    "epochs": 50,
+    "batch_size": 64,
+    "learning_rate": 0.0002,
+    "workers": 4,
+    "num_layers": 4,
+    "tap_layers": 3,
+    "latent_dim": 128,
+    "sigma": 0.2941,
+    "scale_factor": 4,
+    "pretrained_path": null,
+    "checkpoint_dir": null,
+    "additional_epochs": 0,
+    "losses_config": {
+        "l1": {"lambda": 0.5},
+        "l2": {"lambda": 1.0},
+        "perceptual": {"lambda": 0.1},
+        "tap": {"lambda": 0.05}
+    }
+}
