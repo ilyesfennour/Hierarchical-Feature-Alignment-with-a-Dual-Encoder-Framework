@@ -37,36 +37,64 @@ DATASET_PATHS = {
 def parse_args():
     parser = argparse.ArgumentParser(description="Model Evaluation")
 
-    # Model
-    parser.add_argument("--checkpoint", type=str, default="best_model.pth")
+    # Configuration file
+    parser.add_argument("--config", type=str, default=None, help="Path to the evaluation JSON configuration.")
 
-    # Evaluation
-    parser.add_argument("--mode", type=str, default="restoration",
+    # Evaluation parameters
+    parser.add_argument("--checkpoint", type=str, default=None)
+    parser.add_argument("--mode", type=str, default=None,
         choices=["restoration", "classification", "clustering"]
     )
 
-    # Dataset
-    parser.add_argument("--dataset", type=str, default="Kodak",
+    # Dataset parameters
+    parser.add_argument("--dataset", type=str, default=None,
         choices=[
             "CelebA", "SVHN", "CBSD68", "Kodak", "McMaster",
             "Set12", "Urban100", "BSD68", "Set5", "Set14",
             "BSD100", "DIV2K", "ParisStreetView", "Places2"
         ]
     )
-    parser.add_argument("--root_dir", type=str, default="data")
+    parser.add_argument("--root_dir", type=str, default=None)
 
-    # Degradation
-    parser.add_argument("--degradation", type=str, default="denoising",
+    # Degradation parameters
+    parser.add_argument("--degradation", type=str, default=None,
         choices=["denoising", "super_resolution", "missing_data", "none"]
     )
-    parser.add_argument("--sigma", type=float, default=25/255.0)
-    parser.add_argument("--scale_factor", type=int, default=4)
+    parser.add_argument("--sigma", type=float, default=None)
+    parser.add_argument("--scale_factor", type=int, default=None)
 
-    # DataLoader
-    parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--workers", type=int, default=0)
+    # DataLoader parameters
+    parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument("--workers", type=int, default=None)
 
-    return parser.parse_args()
+    # Default parameters
+    config = {
+        "checkpoint": None,
+        "mode": "restoration",
+        "dataset": "CelebA",
+        "root_dir": None,
+        "degradation": "denoising",
+        "sigma": 75 / 255.0,
+        "scale_factor": 4,
+        "batch_size": 32,
+        "workers": 0
+    }
+
+    # Load configuration file
+    if args.config is not None:
+        with open(args.config, "r") as f:
+            file_config = json.load(f)
+        config.update(file_config)
+
+    # Override with explicitly provided command-line arguments
+    cli_args = vars(args).copy()
+    cli_args.pop("config")
+
+    for key, value in cli_args.items():
+        if value is not None:
+            config[key] = value
+
+    return argparse.Namespace(**config)
 
 def evaluate_model(model, test_loader, device):
 
@@ -215,6 +243,8 @@ def evaluate_clustering(model, test_loader, device, n_clusters=None):
 
 # Load Model
 def load_model(checkpoint_path, device):
+    if not os.path.isfile(checkpoint_path):
+        raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
 
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model_name = checkpoint["name"]
@@ -294,7 +324,6 @@ def create_test_loader(args):
 def main(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     degradation = None if args.degradation == "none" else args.degradation
 
     # Load model
@@ -324,7 +353,6 @@ def main(args):
             raise ValueError("Clustering requires DLAE.")
 
         return evaluate_clustering(model, test_loader, device)
-
 
 if __name__ == "__main__":
     args = parse_args()
