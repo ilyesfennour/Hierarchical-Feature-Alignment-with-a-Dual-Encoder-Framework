@@ -168,6 +168,7 @@ class LAE(nn.Module):
     def __init__(self, num_layers=4, latent_dim=128):
         super().__init__()
         self.num_layers = num_layers
+        self.latent_dim = latent_dim
         
         # Initialize VGG for perceptual loss
         vgg = models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
@@ -313,6 +314,8 @@ class DLAE(nn.Module):
     def __init__(self, num_layers=4, num_classes=10, latent_dim=128):
         super().__init__()
         self.num_layers = num_layers
+        self.latent_dim = latent_dim
+        self.num_classes = num_classes
         
         # Initialize VGG for perceptual loss
         vgg = models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
