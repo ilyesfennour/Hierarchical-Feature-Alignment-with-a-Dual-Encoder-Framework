@@ -424,14 +424,14 @@ You can run the notebook locally or using Google Colab. Make sure to install the
 The following figures illustrate representative restoration results
 obtained using the proposed models across different image-processing tasks.
 
-![Qualitative Results](assets/qualitative_results.png)
+![Qualitative Results](assets/qualitative_results.PNG)
 
 # 📈 Quantitative Results
 
 The following results summarize the performance of the proposed models
 on image restoration, classification, and clustering benchmarks.
 
-![Quantitative Results](assets/quantitative_results.png)
+![Quantitative Results](assets/quantitative_results.PNG)
 
 ---
 
