@@ -112,11 +112,9 @@ def run_training(autoencoder='DFA', losses_config=None, dataset='MNIST', root_di
     if checkpoint_dir:
         from checkpoint_utils import get_parameters
         autoencoder, losses_config, dataset, root_dir, degradation, max_samples_per_class, epochs, batch_size, learning_rate, workers, num_layers, tap_layers, latent_dim, pretrained_path = get_parameters(checkpoint_dir)
-    
-    if degradation:
-        return_labels = False
-    else:
-        return_labels = True
+
+    degradation = None if degradation == "none" else degradation
+    return_labels = not bool(degradation)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("\n" + "=" * 75)
