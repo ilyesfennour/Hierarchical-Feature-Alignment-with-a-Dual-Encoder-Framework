@@ -99,7 +99,6 @@ def get_data_loaders(batch_size=32, workers=0, degradation=None, **kwargs):
     # Load dataset
     train_dataset = TaskDataset(split='train', degradation=degradation, **kwargs)
     val_dataset = TaskDataset(split='val', degradation=degradation, **kwargs)
-    test_dataset = TaskDataset(split='test', degradation=degradation, **kwargs)
 
     num_classes = train_dataset.data_loader[2]
 
@@ -152,12 +151,4 @@ def get_data_loaders(batch_size=32, workers=0, degradation=None, **kwargs):
         pin_memory=pin_memory,
     )
 
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size=1,
-        shuffle=False,
-        num_workers=0,
-        pin_memory=pin_memory,
-    )
-
-    return train_loader, val_loader, test_loader, num_classes, class_weights_dict
+    return train_loader, val_loader, num_classes, class_weights_dict
