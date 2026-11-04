@@ -60,7 +60,6 @@ The DFB-HR dataset is additionally supported through a patch-based data-loading 
 .
 ├── README.md
 ├── requirements.txt
-├── LICENSE
 │
 ├── main.py
 ├── model.py
@@ -72,8 +71,13 @@ The DFB-HR dataset is additionally supported through a patch-based data-loading 
 ├── training_utilities.py
 ├── checkpoint_utils.py
 │
-└── notebooks/
-    └── training.ipynb
+├── configs/
+│   ├── training/
+│   ├── evaluation/
+│   └── losses/
+│
+└── notbock/
+    └── experiments.ipynb
 ```
 
 ### Main files
@@ -89,6 +93,7 @@ The DFB-HR dataset is additionally supported through a patch-based data-loading 
 | `training.py`                 | Reconstruction and classification training procedures     |
 | `training_utilities.py`       | Loss functions and training utilities                     |
 | `checkpoint_utils.py`         | Checkpoint loading, and training continuation             |
+| `evaluate.py`                 | Evaluation procedures and performance metrics             |
 | `notebooks/training.ipynb`    | Lightweight notebook interface for running experiments    |
 
 ---
@@ -98,8 +103,8 @@ The DFB-HR dataset is additionally supported through a patch-based data-loading 
 ## 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-cd YOUR_REPOSITORY
+git clone https://github.com/ilyesfennour/Hierarchical-Feature-Alignment-with-a-Dual-Encoder-Framework.git
+cd Hierarchical-Feature-Alignment-with-a-Dual-Encoder-Framework
 ```
 
 ## 2. Create a virtual environment
@@ -213,15 +218,92 @@ data/
 
 ---
 
-# 💾 Checkpoints
+# 🏋️ Training
 
-Checkpoint management is implemented in:
+The training pipeline is implemented in main.py. Models can be trained using either command-line arguments or JSON configuration files.
 
-```text
-checkpoint_utils.py
+You can specify the training parameters directly from the command line.
+
+Example: Training a DFA model on MNIST for image denoising
+
+```bash
+python main.py \
+    --autoencoder DFA \
+    --dataset MNIST \
+    --degradation denoising \
+    --epochs 50 \
+    --batch_size 128 \
+    --learning_rate 0.0002 \
+    --workers 4 \
+    --num_layers 4 \
+    --tap_layers 3 \
+    --sigma 0.2941
+```
+For classification and clustering, use --degradation none
+
+For convenience and reproducibility, the repository provides several example JSON configuration files in the configs/training/ directory.
+
+These examples cover different model architectures, datasets, and training tasks. Users can select an existing configuration or modify its parameters to define their own experiments.
+
+To run an experiment using a configuration file:
+
+```bash
+python main.py --config configs/training/mnist_dfa.json
 ```
 
-The training framework supports continuing training from an existing checkpoint and loading pretrained models.
+The repository provides four example loss configuration files in configs/losses/, corresponding to the supported model architectures and variants:
+
+dfa_losses.json — Loss configuration for DFA.
+
+lae_losses.json — Loss configuration for LAE.
+
+rc_loss.json — Loss configuration for the RC variant.
+
+mr_loss.json — Loss configuration for the MR variant.
+
+To use a loss configuration, pass its path through --losses_config. For example:
+
+```bash
+python main.py \
+    --config configs/training/mnist_dfa.json \
+    --losses_config configs/losses/dfa_losses.json
+```
+
+Select the appropriate loss file for your model and experiment. You can also modify the provided configurations to adjust loss functions and their weights without changing the training code.
+
+Individual CLI arguments can override values specified in a JSON configuration file.
+
+For example:
+```bash
+python main.py \
+    --config configs/training/mnist_dfa.json \
+    --epochs 100 \
+    --batch_size 64 \
+    --learning_rate 0.0001
+```
+The configuration priority is:
+1. Default parameters.
+2. JSON configuration file.
+3. Explicit command-line arguments.
+The separate --losses_config argument can also be used to specify or replace the loss configuration.
+---
+
+# 💾 Training continuation
+The training pipeline supports:
+- Saving model checkpoints.
+- Loading pretrained weights.
+- Resuming training from existing checkpoints.
+- Continuing training for additional epochs.
+The evaluation pipeline loads saved checkpoints and reports the corresponding quantitative metrics.
+
+Checkpoint directories and experiment configurations can be specified through the training and evaluation arguments.
+Training can be continued from an existing checkpoint by specifying its directory and the number of additional epochs.
+```bash
+python main.py \
+    --checkpoint_dir checkpoints/experiment_1 \
+    --additional_epochs 50
+```
+The checkpoint configuration is used to restore the previous experiment settings. Ensure that the checkpoint directory points to a valid saved experiment.
 
 ---
 
