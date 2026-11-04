@@ -324,7 +324,6 @@ def create_test_loader(args):
 def main(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    degradation = None if args.degradation == "none" else args.degradation
 
     # Load model
     model = load_model(args.checkpoint, device)
@@ -337,7 +336,7 @@ def main(args):
     print(f"Device: {device}")
 
     if args.mode == "restoration":
-        if args.degradation == "none":
+        if args.degradation is None or args.degradation == "none":
             raise ValueError("Restoration requires a degradation.")
 
         return evaluate_model(model, test_loader, device)
