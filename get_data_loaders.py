@@ -43,6 +43,9 @@ class TaskDataset(Dataset):
         elif dataset == 'SVHN':
             from data import SVHNLoader
             self.data_loader = SVHNLoader(split=split, max_samples=max_samples_per_class, **kwargs)
+        elif dataset == 'Test':
+            from data import TestLoader
+            self.data_loader = TestLoader(root_dir=root_dir)
         else:
             raise ValueError(f"Unknown dataset: '{dataset}'")
     
