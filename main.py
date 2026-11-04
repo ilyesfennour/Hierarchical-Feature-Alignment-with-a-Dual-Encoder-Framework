@@ -119,24 +119,53 @@ def run_training(autoencoder='DFA', losses_config=None, dataset='MNIST', root_di
         return_labels = True
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"\nUsing device: {device}")
-    print("=" * 70)
+    print("\n" + "=" * 75)
+    print("TRAINING CONFIGURATION")
+    print("=" * 75)
 
-    print(f"Epochs: {epochs}")
-    print(f"Batch size: {batch_size}")
-    print(f"Learning rate: {learning_rate}")
-    print(f"Workers: {workers}")
-    if pretrained_path:
-        print(f"Pre-trained weights: {pretrained_path}")
-    print("=" * 70)
+    # Hardware and training
+    print(f"{'Device':<28}: {device}")
+    print(f"{'Epochs':<28}: {epochs}")
+    print(f"{'Batch size':<28}: {batch_size}")
+    print(f"{'Learning rate':<28}: {learning_rate}")
+    print(f"{'Workers':<28}: {workers}")
 
-    print(f"Autoencoder: {autoencoder}")
-    print("Losses:", ', '.join(losses_config.keys()))
-    print(f"Dataset: {dataset}")
-    print(f"Root: {root_dir}")
-    print(f"Degradation: {degradation}")
-    print(f"Max samples per class: {max_samples_per_class}")
-    print("=" * 70)
+    print("-" * 75)
+    print("MODEL CONFIGURATION")
+    print("-" * 75)
+
+    print(f"{'Autoencoder':<28}: {autoencoder}")
+    print(f"{'Number of layers':<28}: {num_layers}")
+    print(f"{'TAP layers':<28}: {tap_layers}")
+    print(f"{'Latent dimension':<28}: {latent_dim}")
+    print(f"{'Pre-trained weights':<28}: {pretrained_path or 'None'}")
+
+    print("-" * 75)
+    print("DATASET CONFIGURATION")
+    print("-" * 75)
+
+    print(f"{'Dataset':<28}: {dataset}")
+    print(f"{'Root directory':<28}: {root_dir or 'Default'}")
+    print(f"{'Degradation':<28}: {degradation or 'None'}")
+    print(f"{'Max samples per class':<28}: {max_samples_per_class or 'All'}")
+    print(f"{'Noise sigma':<28}: {sigma}")
+    print(f"{'Scale factor':<28}: {scale_factor}")
+
+    print("-" * 75)
+    print("LOSS CONFIGURATION")
+    print("-" * 75)
+
+    for loss_name, loss_params in losses_config.items():
+        print(f"{loss_name:<28}: lambda = {loss_params.get('lambda', 'N/A')}")
+
+    print("-" * 75)
+    print("CHECKPOINT CONFIGURATION")
+    print("-" * 75)
+
+    print(f"{'Checkpoint directory':<28}: {checkpoint_dir or 'None'}")
+    print(f"{'Additional epochs':<28}: {additional_epochs}")
+
+    print("=" * 75)
     
     # Get data loaders
     if dataset == 'DFB-HR':
@@ -174,6 +203,7 @@ def run_training(autoencoder='DFA', losses_config=None, dataset='MNIST', root_di
         from checkpoint_utils import load_pretrained
         model = load_pretrained(model, pretrained_path, device)
 
+    print("-" * 75)
     print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")
     print("=" * 70)
     
