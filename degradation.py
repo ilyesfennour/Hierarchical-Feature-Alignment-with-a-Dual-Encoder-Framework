@@ -1,15 +1,6 @@
 import torch
 import torch.nn.functional as F
 
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Precompute GPU blur kernel
-k = 15
-kernel = torch.zeros(k, k, device=device)
-kernel[k//2,:] = 1.0/k
-
-# image enhancment
 def add_gaussian_noise(img, sigma=75/255.0):
     """Add Gaussian noise to image"""
     noise = torch.randn_like(img) * sigma
