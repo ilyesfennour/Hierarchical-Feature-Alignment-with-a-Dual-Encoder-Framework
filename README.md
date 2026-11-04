@@ -1,9 +1,5 @@
 # Hierarchical Feature Alignment with a Dual-Encoder Framework for Unified Image Restoration, Classification, Visualization, and Clustering
 
-Official implementation of the experiments presented in:
-
-> **Multi-task Autoencoders for Image Denoising, Enhancement, Clustering, Classification, and Data Recovery**
-
 This repository provides the training and evaluation code for a family of autoencoder-based models designed to address multiple image-processing tasks within a unified framework.
 
 The implementation includes:
@@ -27,6 +23,10 @@ The repository contains implementations of three main models:
 * **DFA** — baseline dual-feature autoencoder
 * **LAE** — latent autoencoder
 * **DLAE** — dual latent autoencoder with an additional prediction/classification component
+
+![Quantitative Results](assets/general_architecture.png)
+
+The framework employs a Transfer Alignment Prediction (TAP) loss to align hierarchical features from the auxiliary encoder and decoder, encouraging the transfer of fine-grained information across corresponding feature levels.
 
 The models can be trained with different datasets and image degradation types.
 
@@ -220,11 +220,11 @@ data/
 
 # 🏋️ Training
 
-The training pipeline is implemented in main.py. Models can be trained using either command-line arguments or JSON configuration files.
+The training pipeline is implemented in `main.py`. Models can be trained using command-line arguments or JSON configuration files.
 
-You can specify the training parameters directly from the command line.
+### 1. Command-line training
 
-Example: Training a DFA model on MNIST for image denoising
+The following example trains a DFA model on MNIST for image denoising:
 
 ```bash
 python main.py \
@@ -239,29 +239,55 @@ python main.py \
     --tap_layers 3 \
     --sigma 0.2941
 ```
-For classification and clustering, use --degradation none
 
-For convenience and reproducibility, the repository provides several example JSON configuration files in the configs/training/ directory.
+For classification and clustering experiments, use `--degradation none`.
 
-These examples cover different model architectures, datasets, and training tasks. Users can select an existing configuration or modify its parameters to define their own experiments.
+**Available training parameters:**
 
-To run an experiment using a configuration file:
+| Parameter | Description |
+|---|---|
+| `--autoencoder` | Model architecture: `DFA`, `LAE`, or `DLAE`. |
+| `--dataset` | Dataset used for training (e.g., MNIST, CIFAR-10, CelebA). |
+| `--root_dir` | Root directory containing the datasets. |
+| `--degradation` | Input degradation: denoising, super-resolution, missing data, or none. |
+| `--max_samples_per_class` | Maximum number of training samples per class. |
+| `--epochs` | Number of training epochs. |
+| `--batch_size` | Number of samples per training batch. |
+| `--learning_rate` | Optimizer learning rate. |
+| `--workers` | Number of data-loading worker processes. |
+| `--num_layers` | Number of encoder/decoder layers. |
+| `--tap_layers` | Number of layers used for the TAP mechanism. |
+| `--latent_dim` | Dimensionality of the latent representation. |
+| `--sigma` | Noise standard deviation for denoising. |
+| `--scale_factor` | Downsampling factor for super-resolution. |
+| `--pretrained_path` | Path to pretrained model weights. |
+| `--checkpoint_dir` | Directory used to save or restore experiment checkpoints. |
+| `--additional_epochs` | Number of additional epochs when continuing training. |
+| `--config` | Path to a JSON training configuration file. |
+| `--losses_config` | Path to a JSON file specifying loss functions and their weights. |
+
+### 2. JSON training configurations
+
+For convenience and reproducibility, the repository provides example training configurations in `configs/training/`. These cover different model architectures, datasets, and tasks. You can modify an existing configuration or create your own.
+
+If you use a manually downloaded dataset, specify its location by setting `root_dir` in the JSON configuration file or passing `--root_dir` directly as a command-line argument.
+
+To launch an experiment using a configuration file:
 
 ```bash
 python main.py --config configs/training/mnist_dfa.json
 ```
 
-The repository provides four example loss configuration files in configs/losses/, corresponding to the supported model architectures and variants:
+### 3. Loss configurations
 
-dfa_losses.json — Loss configuration for DFA.
+Four example loss configuration files are provided in `configs/losses/`:
 
-lae_losses.json — Loss configuration for LAE.
+- `dfa_losses.json` — Loss configuration for DFA.
+- `lae_losses.json` — Loss configuration for LAE.
+- `rc_loss.json` — Loss configuration for the RC variant.
+- `mr_loss.json` — Loss configuration for the MR variant.
 
-rc_loss.json — Loss configuration for the RC variant.
-
-mr_loss.json — Loss configuration for the MR variant.
-
-To use a loss configuration, pass its path through --losses_config. For example:
+Specify a loss configuration using `--losses_config`:
 
 ```bash
 python main.py \
@@ -269,11 +295,12 @@ python main.py \
     --losses_config configs/losses/dfa_losses.json
 ```
 
-Select the appropriate loss file for your model and experiment. You can also modify the provided configurations to adjust loss functions and their weights without changing the training code.
+These files can be modified to adjust the loss functions and their weights without changing the training code.
 
-Individual CLI arguments can override values specified in a JSON configuration file.
+### 4. Overriding configuration parameters
 
-For example:
+Command-line arguments can override values defined in a JSON configuration file. For example:
+
 ```bash
 python main.py \
     --config configs/training/mnist_dfa.json \
@@ -281,43 +308,130 @@ python main.py \
     --batch_size 64 \
     --learning_rate 0.0001
 ```
+
 The configuration priority is:
+
 1. Default parameters.
-2. JSON configuration file.
-3. Explicit command-line arguments.
-The separate --losses_config argument can also be used to specify or replace the loss configuration.
+2. Values specified in the JSON configuration file.
+3. Explicitly provided command-line arguments.
+
+The separate `--losses_config` argument can also be used to specify or replace the loss configuration.
+
 ---
 
-# 💾 Training continuation
-The training pipeline supports:
-- Saving model checkpoints.
-- Loading pretrained weights.
-- Resuming training from existing checkpoints.
-- Continuing training for additional epochs.
+# 💾 Checkpoints and Training Continuation
+
+The training pipeline supports saving checkpoints, loading pretrained weights, resuming interrupted experiments, and extending training for additional epochs.
+
 The evaluation pipeline loads saved checkpoints and reports the corresponding quantitative metrics.
 
-Checkpoint directories and experiment configurations can be specified through the training and evaluation arguments.
-Training can be continued from an existing checkpoint by specifying its directory and the number of additional epochs.
+### Resuming or extending training
+
+Specify the checkpoint directory using `--checkpoint_dir` and control training continuation with `--additional_epochs`:
+
+- Set `--additional_epochs 0` to resume training using the remaining epochs.
+- Set a positive value to add that number of epochs to the remaining training schedule.
+
+**Resume training:**
+```bash
+python main.py \
+    --checkpoint_dir checkpoints/experiment_1 \
+    --additional_epochs 0
+```
+
+**Extend training by 50 epochs:**
 ```bash
 python main.py \
     --checkpoint_dir checkpoints/experiment_1 \
     --additional_epochs 50
 ```
-The checkpoint configuration is used to restore the previous experiment settings. Ensure that the checkpoint directory points to a valid saved experiment.
+
+### Loading pretrained weights
+
+To initialize training from pretrained weights, specify the checkpoint path using `--pretrained_path`:
+
+```bash
+python main.py \
+    --autoencoder DFA \
+    --dataset MNIST \
+    --pretrained_path checkpoints/pretrained_model.pth
+```
+
+The checkpoint directory and experiment configuration must be valid to restore the corresponding training state.
+
+---
+
+# 📊 Evaluation
+
+The evaluation pipeline is implemented in `evaluate.py`. It supports evaluating trained models on restoration, classification, and clustering tasks using command-line arguments or JSON configuration files.
+
+### 1. Command-line evaluation
+
+Example: Evaluating a DFA model on MNIST for image denoising:
+
+```bash
+python evaluate.py \
+    --checkpoint checkpoints/mnist_dfa/best_model.pth \
+    --mode restoration \
+    --dataset MNIST \
+    --degradation denoising \
+    --sigma 0.2941 \
+    --batch_size 128 \
+    --workers 4
+```
+
+**Available evaluation parameters:**
+
+| Parameter        | Description                                                            |
+| ---------------- | ---------------------------------------------------------------------- |
+| `--checkpoint`   | Path to the trained model checkpoint.                                  |
+| `--mode`         | Evaluation task: `restoration`, `classification`, or `clustering`.     |
+| `--dataset`      | Dataset used for evaluation.                                           |
+| `--root_dir`     | Root directory containing the evaluation dataset.                      |
+| `--degradation`  | Input degradation: denoising, super-resolution, missing data, or none. |
+| `--sigma`        | Noise standard deviation for denoising.                                |
+| `--scale_factor` | Downsampling factor for super-resolution.                              |
+| `--batch_size`   | Number of samples per evaluation batch.                                |
+| `--workers`      | Number of data-loading worker processes.                               |
+| `--config`       | Path to a JSON evaluation configuration file.                          |
+
+For classification and clustering, use the corresponding `--mode` and set `--degradation none`.
+
+### 2. JSON evaluation configurations
+
+Example evaluation configurations are provided in `configs/evaluation/`. You can modify them to specify the checkpoint, dataset, evaluation mode, and other parameters.
+
+If you use a manually downloaded dataset, specify its location by setting `root_dir` in the JSON configuration file or passing `--root_dir` directly as a command-line argument.
+
+Run an evaluation using a configuration file:
+
+```bash
+python evaluate.py --config configs/evaluation/mnist_restoration.json
+```
 
 ---
 
 # 📓 Notebook
 
-A lightweight Jupyter notebook is provided in:
+The repository also includes `notbock/experiments.ipynb`, providing a notebook-based interface for training and evaluating models. It allows you to configure experiments, run training, and evaluate saved checkpoints interactively.
 
-```text
-notebooks/training.ipynb
-```
+You can run the notebook locally or using Google Colab. Make sure to install the required dependencies and configure the dataset paths before running the experiments.
 
-The notebook is intended as a convenient interface for launching experiments rather than containing the complete implementation.
+---
 
-The core implementation remains in the Python modules so that experiments can be reproduced from the command line and the code can be reused programmatically.
+# 🖼️ Qualitative Results
+
+The following figures illustrate representative restoration results
+obtained using the proposed models across different image-processing tasks.
+
+![Qualitative Results](assets/qualitative_results.png)
+
+# 📈 Quantitative Results
+
+The following results summarize the performance of the proposed models
+on image restoration, classification, and clustering benchmarks.
+
+![Quantitative Results](assets/quantitative_results.png)
 
 ---
 
