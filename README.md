@@ -70,6 +70,7 @@ The DFB-HR dataset is additionally supported through a patch-based data-loading 
 ├── training.py
 ├── training_utilities.py
 ├── checkpoint_utils.py
+├── evaluate.py
 │
 ├── configs/
 │   ├── training/
